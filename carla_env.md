@@ -39,3 +39,10 @@ if not defined install_boost (
 - [Windows で Carla をソースコードからビルドして、インストールする](https://www.kkaneko.jp/tools/win/carla.html)
 - [Windows build 0.9.10](https://carla.readthedocs.io/en/0.9.10/build_windows/)
 ----
+
+# WSL CARLA関連
+## ホストPCのCARLAサーバーへアクセス
+```bash
+# host:= を指定する必要あり
+roslaunch carla_autoware_agent carla_autoware_agent.launch town:=Town01 host:=$(cat /etc/resolv.conf | grep nameserver | awk '{print $2}')
+```
