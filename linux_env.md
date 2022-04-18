@@ -80,3 +80,11 @@ source ~/.bashrc
 - wsl2導入
 - wsl2でdockerのインストール
 - nviida-container-toolkitのインストール
+
+# docker build時にaptがしくる
+ホスト側のネットワークを使う
+ホスト側のネットワークを使って問題ない場合は、ホスト側のネットワークを使ってビルドすればよい
+「docker image build」には「--network」オプションはあるので。こんな感じで。
+```sh
+docker image build --network host -t kazuhira/apache2:latest .
+```
