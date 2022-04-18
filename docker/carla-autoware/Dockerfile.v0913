@@ -1,0 +1,58 @@
+FROM carlasim/carla:0.9.13 as carla
+FROM autoware/autoware:1.14.0-melodic-cuda
+
+WORKDIR /home/autoware
+
+COPY --chown=autoware --from=carla /home/carla/PythonAPI ./carla/PythonAPI
+
+# install ros
+RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list' \
+    && curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -
+RUN apt-get update && apt-get install -y \
+    ros-melodic-desktop-full ros-melodic-tvm-vendor \
+    pcl-tools \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# install autoware latest
+USER autoware
+RUN mkdir -p autoware_master/src \
+    && cd autoware_master \
+    && wget -O autoware.ai.repos "https://raw.githubusercontent.com/Autoware-AI/autoware.ai/master/autoware.ai.repos" \
+    && vcs import src < autoware.ai.repos \
+    && source /opt/ros/melodic/setup.bash \
+    && rosdep update \
+    && rosdep install -y --from-paths src --ignore-src --rosdistro melodic \
+    && AUTOWARE_COMPILE_WITH_CUDA=1 colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release
+
+# CARLA PythonAPI
+RUN echo "export PYTHON2_EGG=$(ls /home/autoware/carla/PythonAPI/carla/dist | grep py2.)" >> .bashrc \
+    && echo "export PYTHONPATH=\$PYTHONPATH:~/carla/PythonAPI/carla/dist/\$PYTHON2_EGG" >> .bashrc
+
+# CARLA ROS Bridge
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python-pip python-wheel ros-melodic-ackermann-msgs ros-melodic-derived-object-msgs \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+USER autoware
+RUN git clone --recurse-submodules https://github.com/carla-simulator/ros-bridge.git \
+    && pip install simple-pid pygame networkx==2.2 transforms3d \
+    && sed -i -e 's/0.9.12/0.9.13/g' ./ros-bridge/carla_ros_bridge/src/carla_ros_bridge/CARLA_VERSION
+
+# CARLA Autoware agent
+COPY --chown=autoware . ./carla-autoware
+
+RUN mkdir -p carla_ws/src
+RUN cd carla_ws/src \
+    && ln -s ../../ros-bridge \
+    && ln -s ../../carla-autoware/carla-autoware-agent \
+    && cd .. \
+    && source /opt/ros/melodic/setup.bash \
+    && catkin_make
+
+RUN echo "export CARLA_AUTOWARE_CONTENTS=~/autoware-contents" >> .bashrc \
+    && echo "source ~/carla_ws/devel/setup.bash" >> .bashrc \
+    && echo "source ~/autoware_master/install/setup.bash" >> .bashrc
+
+USER root
+CMD ["/bin/bash"]
