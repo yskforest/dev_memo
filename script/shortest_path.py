@@ -49,9 +49,11 @@ if __name__ == "__main__":
 
     # save the path in another OSM map with a special tag to highlight it
     ids = []
+    ll2_plan = lanelet2.core.LaneletMap()
     for lane in shortest_lanes:
         ids.append(lane.id)
+        ll2_plan.add(ll2_map.laneletLayer[lane.id])
         ll2_map.laneletLayer[lane.id].attributes["shortestPath"] = "True"
     print(ids)
 
-    lanelet2.io.write(args.output, ll2_map, proj_utm)
+    lanelet2.io.write(args.output, ll2_plan, proj_utm)
