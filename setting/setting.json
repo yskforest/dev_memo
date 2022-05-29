@@ -1,0 +1,23 @@
+{
+    "workbench.colorTheme": "Monokai",
+    "git.autofetch": true,
+    "python.linting.pylintEnabled": false,
+    "python.linting.flake8Enabled": true,
+    "python.linting.flake8Args": [
+        "--ignore=W293, W504, E501",
+        "--max-complexity=20"
+    ],
+    "python.formatting.provider": "autopep8",
+    "python.formatting.autopep8Args": [
+        "--max-line-length=120",
+        "--aggressive",
+        "--aggressive",
+    ],
+    "[python]": {
+        "editor.formatOnType": true,
+    },
+    "workbench.iconTheme": "vscode-icons",
+    "security.workspace.trust.untrustedFiles": "open",
+    "vsicons.dontShowNewVersionMessage": true,
+    "settingsSync.ignoredExtensions": [],
+}
