@@ -1,10 +1,20 @@
+# ubuntu env
+
+
+## setup script
+```bash
+# apt fast
+sudo add-apt-repository ppa:apt-fast/stable
+sudo apt update
+sudo apt -y install apt-fast
+# apt,5(default),yes
+
 # Nvidia driver install
 sudo add-apt-repository ppa:graphics-drivers/ppa
 sudo apt update
 ubuntu-drivers devices
 sudo apt install nvidia-driver-XXX
 sudo reboot
-
 nvidia-smi
 
 # docker install
@@ -20,8 +30,11 @@ curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.li
 sudo apt-get update
 sudo apt-get install -y nvidia-docker2
 sudo systemctl restart docker
+```
 
-# conda package
-conda install -c conda-forge opencv
-conda install -c open3d-admin open3d
-conda install -c evindunn pygame
+## Pythonのデフォルトバージョンを変更
+```bash
+sudo apt install python3.7
+vi ~/.bashrc
+alias python3='/usr/bin/python3.7'
+```
