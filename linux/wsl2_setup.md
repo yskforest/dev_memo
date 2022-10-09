@@ -1,5 +1,11 @@
 # wsl2_setup
 
+## wsl2有効化
+```powershell
+dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
+dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
+```
+
 ## WSL2をVcxSrvでGUI起動
 ### WSL側の設定、以下コマンド実行
 - rvizがXサーバーと正しく通信できるようにする

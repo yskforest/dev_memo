@@ -1,7 +1,10 @@
 # chocolatey
 
-must
-```
+## setup
+- https://chocolatey.org/install
+
+## must
+```powershell
 choco install -y googlechrome
 choco install -y firefox
 choco install -y vlc
@@ -10,8 +13,8 @@ choco install -y git.install
 choco install -y vscode.install
 ```
 
-optional 1
-```
+## optional 1
+```powershell
 choco install -y cmake.install
 choco install -y make
 choco install -y uget
@@ -20,8 +23,8 @@ choco install -y meshlab
 choco install -y visualstudio2019community
 ```
 
-optional 2
-```
+## optional 2
+```powershell
 choco install -y epicgameslauncher
 choco install -y adobereader
 choco install -y docker
@@ -34,6 +37,6 @@ choco install -y bitcomet
 ```
 
 ## 導入しない
-```
+```powershell
 choco install -y eset-internet-security
 ```
