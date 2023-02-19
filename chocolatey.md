@@ -15,16 +15,18 @@ choco install -y vscode.install
 
 ## optional 1
 ```powershell
+choco install -y irfanview
+choco install -y irfanviewplugins
 choco install -y cmake.install
 choco install -y make
 choco install -y uget
 choco install -y vcxsrv
 choco install -y meshlab
-choco install -y visualstudio2019community
 ```
 
 ## optional 2
 ```powershell
+choco install -y visualstudio2019community
 choco install -y epicgameslauncher
 choco install -y adobereader
 choco install -y docker

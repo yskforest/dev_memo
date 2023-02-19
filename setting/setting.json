@@ -1,6 +1,7 @@
 {
     "workbench.colorTheme": "Monokai",
     "git.autofetch": true,
+    "omnisharp.autoStart": false,
     "python.linting.pylintEnabled": false,
     "python.linting.flake8Enabled": true,
     "python.linting.flake8Args": [
@@ -20,4 +21,5 @@
     "security.workspace.trust.untrustedFiles": "open",
     "vsicons.dontShowNewVersionMessage": true,
     "settingsSync.ignoredExtensions": [],
+    "C_Cpp.clang_format_style": "{ BasedOnStyle: Google, IndentWidth: 4, ColumnLimit: 120 }"
 }
