@@ -69,3 +69,20 @@ void ASceneCap::BeginPlay()
 	SceneCaptureCv->UpdateContent();
 }
 ```
+
+https://docs.unrealengine.com/5.1/en-US/API/Runtime/Engine/Engine/APostProcessVolume/
+
+    int32 count = world->PostProcessVolumes.Num();
+
+    for (int32 x = 0; x < count; ++x)
+    {
+        FPostProcessVolumeProperties volume = world->PostProcessVolumes[x]->GetProperties();
+        if (volume.bIsUnbound)
+        {
+            FPostProcessSettings* settings = (FPostProcessSettings*)volume.Settings;
+            settings->MotionBlurAmount = 0;
+            settings->MotionBlurMax = 0;
+            settings->MotionBlurPerObjectSize = 0;
+        }
+
+    }
