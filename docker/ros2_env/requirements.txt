@@ -1,0 +1,17 @@
+tqdm
+autopep8
+flake8
+
+opencv-python
+pygame
+matplotlib
+seaborn
+open3d
+scipy
+pandas
+pyyaml
+pillow
+
+torch
+torchvision
+motpy
