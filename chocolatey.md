@@ -22,6 +22,10 @@ choco install -y make
 choco install -y uget
 choco install -y vcxsrv
 choco install -y meshlab
+choco install -y nodejs-lts
+choco install -y blender
+choco install -y bitcomet
+choco install -y rufus
 ```
 
 ## optional 2
@@ -31,11 +35,8 @@ choco install -y epicgameslauncher
 choco install -y adobereader
 choco install -y docker
 choco install -y virtualbox
-choco install -y rufus
 choco install -y crystaldiskinfo
 choco install -y crystaldiskinfo.portable
-choco install -y blender
-choco install -y bitcomet
 ```
 
 ## 導入しない

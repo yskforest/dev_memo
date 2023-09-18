@@ -4,12 +4,18 @@
 
 ### 手順
 - コードをクローン
-- システム環境変数設定
-  - TOOLSET に　msvc-16 に設定
-- carlaソース修正
+- VS ver ソース修正
   - -G "Visual Studio 15 2017 Win64"　を　-G "Visual Studio 16 2019"　に置換
   - プロジェクト内全置換でOK
+- Toolset ソース修正
+  - msvc-14.1　を　msvc-14.2 に置換
+  - プロジェクト内全置換でOK
+- zlibのセットアップ
+  - 0.9.10.1のスクリプトは動かないので、[最新のスクリプト](https://github.com/carla-simulator/carla/blob/master/Util/InstallersWin/install_zlib.bat)へ置き換え
+- xercescのセットアップ
+  - [最新のスクリプト](https://github.com/carla-simulator/carla/blob/master/Util/InstallersWin/install_xercesc.bat)
 - boostのセットアップ
+  - ↓動くことを確認
   - VS2019ではどうもうまくboostのビルドができなかったので、VS2017でビルドしたものやver0.9.12(VS2019)でビルドしたboostを持ってくる
   - 以下2フォルダをビルド済みのプロジェクトから同フォルダにコピー
     - carla\Build\boost-1.72.0-install
