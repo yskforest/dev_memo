@@ -3,7 +3,7 @@
 ### OpenCVの入手
 - Releasesのバイナリを入手
 - [OpenCV](https://opencv.org/releases/)
-
+- c/opencv を推奨
 ### パスを通す
 - 環境変数→pathに追加
 - C:\opencv\build\x64\vc15\bin
@@ -32,3 +32,20 @@ CARLAのビルドに必要
 - [Windows SDK and emulator archive](https://developer.microsoft.com/en-us/windows/downloads/sdk-archive/)
 - [Windows 8.1 SDK](https://go.microsoft.com/fwlink/p/?LinkId=323507)
 
+# linux SUMO install
+[add-apt-repositoryを使わないでPPAを追加する](https://www.usagi1975.com/2019152355/)
+[SUMOの公開鍵を取得](https://launchpad.net/~sumo/+archive/ubuntu/stable)
+
+```bash
+# sudo add-apt-repository ppa:sumo/stable に相当
+apt-key adv --keyserver keyserver.ubuntu.com --recv 0x4B339D18DD12CA62CA0E400F87637B2A34012D7A
+sudo apt-get update
+
+# ppa:sumo/stable Ubuntu18.04
+deb https://ppa.launchpadcontent.net/sumo/stable/ubuntu bionic main 
+deb-src https://ppa.launchpadcontent.net/sumo/stable/ubuntu bionic main 
+
+
+echo 'deb https://ppa.launchpadcontent.net/sumo/stable/ubuntu bionic main' \
+         | sudo tee /etc/apt/sources.list.d/sumo_stable_ubuntu_bionic_main.list
+```
