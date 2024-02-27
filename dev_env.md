@@ -32,3 +32,19 @@ CARLAのビルドに必要
 - [Windows SDK and emulator archive](https://developer.microsoft.com/en-us/windows/downloads/sdk-archive/)
 - [Windows 8.1 SDK](https://go.microsoft.com/fwlink/p/?LinkId=323507)
 
+
+##
+- [コード品質可視化DockerでSonarQube！WSL2で構築](https://tech.walkit.net/docker-sonarqube)
+- https://github.com/dotnet/dotnet-docker
+- https://github.com/mono/linux-packaging-msbuild
+- https://github.com/SonarSource/sonar-scanner-msbuild
+- [Docker イメージから SonarQube をインストールする](https://docs.sonarsource.com/sonarqube/9.9/setup-and-upgrade/install-the-server/#installing-sonarqube-from-the-docker-image)
+  - 上記のコマンドで示されているように、 バインド マウントではなくボリュームを使用していることを確認してください 。バインド マウントを使用すると、プラグインが正しく設定されなくなります。
+- [](https://community.sonarsource.com/t/environment-variables-documentation-with-missing-placeholders/34848)
+  - https://github.com/Daabramov/Sonarqube-for-1c-docker/blob/master/docker-compose.yml
+  - 
+```bash
+SONAR_WEB_JAVAOPTS=-Xmx1G -Xms128m -XX:+HeapDumpOnOutOfMemoryError
+SONAR_CE_JAVAOPTS=-Xmx2G -Xms128m -XX:+HeapDumpOnOutOfMemoryError
+SONAR_SEARCH_JAVAOPTS=-Xmx2G -Xms2G -XX:MaxDirectMemorySize=1G -XX:+HeapDumpOnOutOfMemoryError
+```
