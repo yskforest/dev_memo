@@ -121,3 +121,70 @@ def read_pmd_csv(files, csv_outpath=None, json_outpath=None, min_lines=10, delet
 	        json.dump(file_dict, f, indent=2)
 
     return total_lines, total_tokens
+
+def pmd_cpd_xml_parse(xml_data, csv_outpath=None, min_lines=10):
+    """pmd-cpdのxml出力を解析してdictで出力"""
+    xml_dict = xmltodict.parse(xml_data)
+    file_list = xml_dict["pmd-cpd"]["file"]
+
+    cpd_dict = {}
+    cpd_dict["allFilesTokens"] = 0
+    cpd_dict["files"] = {}
+    new_rows = []
+
+    for file in file_list:
+        path = file["@path"]
+        file_tokens = int(file["@totalNumberOfTokens"])
+        cpd_dict["allFilesTokens"]  += file_tokens
+
+        if path in cpd_dict["files"]:
+            print("alraidy exist file error!")
+            sys.exit
+        else: 
+            file_dict = {}
+            file_dict["totalNumberOfTokens"] = file_tokens
+            cpd_dict["files"][path] = file_dict
+
+    duplication_list = xml_dict["pmd-cpd"]["duplication"]
+    all_duplicate_tokens = 0
+
+    for duplication in duplication_list:
+        lines = int(duplication["@lines"])
+        if lines < min_lines:
+            continue
+
+        row = []
+        row.append(lines)
+
+        tokens = int(duplication["@tokens"])
+        all_duplicate_tokens += tokens
+        row.append(tokens)
+
+        files = duplication["file"]
+        for file in files:
+            key = file["@path"]
+            row.append(key)
+
+            if "duplicate" in cpd_dict["files"][key]:
+                pass
+            else:
+                cpd_dict["files"][key]["duplicate"] = []
+
+            duplicate_info = {}
+            duplicate_info["begintoken"] = int(file["@begintoken"])
+            duplicate_info["tokens"] = tokens
+
+            cpd_dict["files"][key]["duplicate"].append(duplicate_info)
+
+        new_rows.append(row)
+
+    if csv_outpath:
+        with open(csv_outpath, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(["lines", "tokens"])
+
+            # linesでソート
+            new_rows = sorted(new_rows, key=lambda x: int(x[0]), reverse=True)
+            writer.writerows(new_rows)
+
+    return cpd_dict
