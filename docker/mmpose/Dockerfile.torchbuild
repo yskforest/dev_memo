@@ -18,6 +18,9 @@ RUN apt-get update && apt-get install -y \
     # https://docs.nvidia.com/deeplearning/frameworks/install-pytorch-jetson-platform/index.html#prereqs-install
     # https://forums.developer.nvidia.com/t/pytorch-for-jetson/72048
     libopenblas-dev libopenmpi-dev \
+    # for torchvision
+    # https://forums.developer.nvidia.com/t/pytorch-for-jetson/72048
+    libjpeg-dev zlib1g-dev libpython3-dev libopenblas-dev libavcodec-dev libavformat-dev libswscale-dev \
     # for pyenv
     # https://github.com/pyenv/pyenv/wiki#suggested-build-environment
     build-essential libssl-dev zlib1g-dev \
@@ -26,43 +29,48 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # set pyenv
-RUN git clone https://github.com/pyenv/pyenv.git .pyenv
-
 # pyenvで導入したpythonをvenvで使用
+ARG PYTHON_VER=3.8.18
 ENV PYENV_ROOT="${HOME}/.pyenv"
 ENV PATH="${PATH}:${PYENV_ROOT}/bin"
-RUN pyenv install 3.8.18
-RUN eval "$(pyenv init -)" \
-    && pyenv local 3.8.18 \
+RUN git clone https://github.com/pyenv/pyenv.git .pyenv \
+    && pyenv install ${PYTHON_VER} \
+    && eval "$(pyenv init -)" \
+    && pyenv local ${PYTHON_VER} \
     && python -m venv venv \
     && . venv/bin/activate \
     && pip install --upgrade pip
 
 # install pytorch
 # https://forums.developer.nvidia.com/t/pytorch-for-jetson/72048
-RUN git clone --recursive -b v2.1.0 http://github.com/pytorch/pytorch
-RUN . venv/bin/activate \
-    && cd pytorch \
-    && pip install -r requirements.txt \
-    && pip install scikit-build ninja
-
 ENV USE_DISTRIBUTED=1
 # https://developer.nvidia.com/cuda-gpus#compute
 ENV TORCH_CUDA_ARCH_LIST="8.7"   
 ENV PYTORCH_BUILD_VERSION=2.1.0
 ENV PYTORCH_BUILD_NUMBER=1
 ENV USE_CUDA=1
-ENV CUDACXX=/usr/local/cuda-11.4/bin/nvcc
-ENV CUDA_HOME=/usr/local/cuda-11.4
-ENV CUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda-11.4
-ENV CUDA_NVCC_EXCUTABLE=/usr/local/cuda-11.4/bin/nvcc
+ENV CUDACXX=/usr/local/cuda/bin/nvcc
+ENV CUDA_HOME=/usr/local/cuda
+ENV CUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda
+ENV CUDA_NVCC_EXCUTABLE=/usr/local/cuda/bin/nvcc
 
-RUN . venv/bin/activate \
+RUN git clone --recursive -b v${PYTORCH_BUILD_VERSION} http://github.com/pytorch/pytorch \
+    && . venv/bin/activate \
     && cd pytorch \
+    && pip install -r requirements.txt \
+    && pip install scikit-build ninja \
     && python setup.py bdist_wheel
 
 RUN . venv/bin/activate \
-    && pip install /root/pytorch/dist/torch-2.1.0-cp38-cp38-linux_aarch64.whl
+    && pip install ${HOME}/pytorch/dist/torch-2.1.0-cp38-cp38-linux_aarch64.whl
 
-# RUN echo 'source ~/venv/bin/activate' >> .bashrc
+# install torchvision
+# https://iq.opengenus.org/build-torchvision-from-source/
+ENV BUILD_VERSION=0.16.2
+RUN git clone --recursive -b v${BUILD_VERSION} https://github.com/pytorch/vision \
+    && . venv/bin/activate \
+    && cd vision \
+    && python setup.py bdist_wheel \
+    && pip install dist/torchvision-${BUILD_VERSION}-cp38-cp38-linux_aarch64.whl
+
 CMD ["/bin/bash"]
