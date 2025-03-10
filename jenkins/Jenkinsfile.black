@@ -1,0 +1,125 @@
+pipeline {
+    agent any
+
+    environment {
+        BLACKDUCK_URL = 'https://your-blackduck-instance.com'
+        BLACKDUCK_API_TOKEN = credentials('blackduck-api-token')
+        PROJECT_NAME = 'your_project'
+        VERSION_NAME = '1.0'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/your-repo.git'
+            }
+        }
+
+        stage('Black Duck Scan') {
+            steps {
+                blackduck_detect(
+                    detectProperties: """
+                        --blackduck.url=$BLACKDUCK_URL
+                        --blackduck.api.token=$BLACKDUCK_API_TOKEN
+                        --detect.project.name=$PROJECT_NAME
+                        --detect.project.version.name=$VERSION_NAME
+                        --detect.source.path=.
+                        --detect.wait.for.results=true
+                        --detect.cleanup=true
+                    """,
+                    downloadStrategyOverride: [$class: 'ScriptOrJarDownloadStrategy']
+                )
+            }
+        }
+
+        stage('Download Report') {
+            steps {
+                sh '''
+                REPORT_ID=$(curl -s -X GET "$BLACKDUCK_URL/api/reports" \
+                    -H "Authorization: Bearer $BLACKDUCK_API_TOKEN" | jq -r '.items[0]._meta.href')
+
+                if [ -z "$REPORT_ID" ]; then
+                    echo "No report available. Exiting..."
+                    exit 1
+                fi
+
+                curl -o blackduck_report.pdf -X GET "$REPORT_ID" \
+                    -H "Authorization: Bearer $BLACKDUCK_API_TOKEN"
+                '''
+            }
+        }
+
+        stage('Archive Report') {
+            steps {
+                archiveArtifacts artifacts: 'blackduck_report.pdf', fingerprint: true
+            }
+        }
+
+        stage('Delete Old Scans') {
+            steps {
+                sh '''
+                PROJECT_ID=$(curl -s -X GET "$BLACKDUCK_URL/api/projects?name=$PROJECT_NAME" \
+                    -H "Authorization: Bearer $BLACKDUCK_API_TOKEN" | jq -r '.items[0]._meta.href')
+
+                VERSION_ID=$(curl -s -X GET "$PROJECT_ID/versions?name=$VERSION_NAME" \
+                    -H "Authorization: Bearer $BLACKDUCK_API_TOKEN" | jq -r '.items[0]._meta.href')
+
+                SCAN_IDS=$(curl -s -X GET "$VERSION_ID/scans" \
+                    -H "Authorization: Bearer $BLACKDUCK_API_TOKEN" | jq -r '.items[].id')
+
+                for SCAN_ID in $SCAN_IDS; do
+                    curl -X DELETE "$VERSION_ID/scans/$SCAN_ID" \
+                        -H "Authorization: Bearer $BLACKDUCK_API_TOKEN"
+                    echo "Deleted scan ID: $SCAN_ID"
+                done
+                '''
+            }
+        }
+    }
+}
+
+pipeline {
+    agent any
+    environment {
+        BLACKDUCK_URL = 'https://your-blackduck-instance.com'
+        BLACKDUCK_API_TOKEN = credentials('blackduck-api-token')
+        PROJECT_NAME = 'your_project'
+        VERSION_NAME = '1.0'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/your-repo.git'
+            }
+        }
+
+        stage('Detect Changed Files') {
+            steps {
+                script {
+                    def changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
+                    def modifiedDirs = changedFiles.split("\n").collect { it.split('/')[0] }.unique()
+                    env.MODIFIED_PATHS = modifiedDirs.join(',')
+                }
+                echo "Modified paths: ${env.MODIFIED_PATHS}"
+            }
+        }
+
+        stage('Black Duck Scan (Changed Parts Only)') {
+            steps {
+                blackduck_detect(
+                    detectProperties: """
+                        --blackduck.url=$BLACKDUCK_URL
+                        --blackduck.api.token=$BLACKDUCK_API_TOKEN
+                        --detect.project.name=$PROJECT_NAME
+                        --detect.project.version.name=$VERSION_NAME
+                        --detect.source.path=${env.MODIFIED_PATHS}
+                        --detect.wait.for.results=true
+                        --detect.cleanup=true
+                    """,
+                    downloadStrategyOverride: [$class: 'ScriptOrJarDownloadStrategy']
+                )
+            }
+        }
+    }
+}
