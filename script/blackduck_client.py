@@ -3,13 +3,13 @@ import sys
 import subprocess
 import time
 import logging
-from typing import Dict, Any, List
+from typing import Any
 
 import requests
 
 
 class RestApiClient:
-    def __init__(self, base_url: str, headers: Dict[str, str] | None = None, timeout: int = 10):
+    def __init__(self, base_url: str, headers: dict[str, str] | None = None, timeout: int = 10):
         self.base_url = base_url.rstrip("/")
         self.session = requests.Session()
         self.session.headers.update(headers or {})
@@ -20,11 +20,9 @@ class RestApiClient:
         self.logger = logging.getLogger(__name__)
 
     def set_auth_token(self, token: str):
-        """Bearer トークン認証を設定"""
         self.session.headers.update({"Authorization": f"Bearer {token}"})
 
     def _log(self, message: str, level: str = "info"):
-        """ログメッセージを出力"""
         log_levels = {
             "info": self.logger.info,
             "warning": self.logger.warning,
@@ -33,8 +31,7 @@ class RestApiClient:
         }
         log_levels.get(level, self.logger.info)(message)
 
-    def _request(self, method: str, endpoint: str, **kwargs) -> Dict[str, Any] | List[Any] | None:
-        """HTTPリクエストを実行"""
+    def _request(self, method: str, endpoint: str, **kwargs) -> dict[str, Any] | list[Any] | None:
         url = f"{self.base_url}/{endpoint.lstrip('/')}"
         kwargs.setdefault("timeout", self.timeout)
 
@@ -70,20 +67,23 @@ class RestApiClient:
             self._log(f"Unexpected Error: {method} {url} → {e}", "error")
             raise
 
-    def get(self, endpoint: str, **kwargs) -> Dict[str, Any] | List[Any] | None:
+    def get(self, endpoint: str, **kwargs) -> dict[str, Any] | list[Any] | None:
         return self._request("GET", endpoint, **kwargs)
 
-    def post(self, endpoint: str, **kwargs) -> Dict[str, Any] | List[Any] | None:
+    def post(self, endpoint: str, **kwargs) -> dict[str, Any] | list[Any] | None:
         return self._request("POST", endpoint, **kwargs)
 
-    def put(self, endpoint: str, **kwargs) -> Dict[str, Any] | List[Any] | None:
+    def put(self, endpoint: str, **kwargs) -> dict[str, Any] | list[Any] | None:
         return self._request("PUT", endpoint, **kwargs)
 
-    def patch(self, endpoint: str, **kwargs) -> Dict[str, Any] | List[Any] | None:
+    def patch(self, endpoint: str, **kwargs) -> dict[str, Any] | list[Any] | None:
         return self._request("PATCH", endpoint, **kwargs)
 
-    def delete(self, endpoint: str, **kwargs) -> Dict[str, Any] | List[Any] | None:
+    def delete(self, endpoint: str, **kwargs) -> dict[str, Any] | list[Any] | None:
         return self._request("DELETE", endpoint, **kwargs)
+
+    def close(self):
+        self.session.close()
 
 
 class BlackDuckAPI(RestApiClient):
@@ -99,15 +99,13 @@ class BlackDuckAPI(RestApiClient):
 
     def get_bearer_token(self) -> str:
         """APIトークンを使用してBearerトークンを取得"""
-        auth_url = f"{self.base_url}/api/tokens/authenticate"
         headers = {"Authorization": f"token {self.api_token}", "Accept": "application/json"}
-
-        response = self.post(auth_url, headers=headers)
+        response = self.post("api/tokens/authenticate", headers=headers)
         if response and "bearerToken" in response:
             return response["bearerToken"]
         raise Exception("Failed to obtain bearer token.")
 
-    def _get_headers(self) -> Dict[str, str]:
+    def _get_headers(self) -> dict[str, str]:
         """Bearerトークンを含むヘッダーを取得"""
         return {
             "Authorization": f"Bearer {self.bearer_token}",
@@ -225,42 +223,43 @@ class BlackDuckAPI(RestApiClient):
 
 def main():
     parser = argparse.ArgumentParser(description="Black Duck REST API クライアント")
-
     parser.add_argument("--url", default="https://your-default-blackduck-server", help="Black Duck のベース URL")
     parser.add_argument("--token", default="your-default-api-token", help="Black Duck の API トークン")
     parser.add_argument("--list-projects", action="store_true", help="プロジェクト一覧を取得")
     parser.add_argument("--list-versions", type=str, help="指定したプロジェクトのバージョン一覧を取得")
-
     parser.add_argument("--scan", type=str, help="指定したプロジェクトに対してスキャンを実施")
     parser.add_argument("--scan-version", type=str, default="latest", help="スキャン対象のプロジェクトバージョン")
     parser.add_argument("--scan-dir", type=str, default=".", help="スキャン対象のディレクトリ")
-
     parser.add_argument("--report", type=str, help="指定したプロジェクトのレポートを作成")
     parser.add_argument("--report-version", type=str, default="latest", help="レポート対象のプロジェクトバージョン")
-
     parser.add_argument("--delete-report", type=str, help="指定したプロジェクトのレポートを削除")
     parser.add_argument("--delete-scan", type=str, help="指定したプロジェクトのスキャンデータを削除")
     parser.add_argument("--delete-version", type=str, help="指定したプロジェクトのバージョンを削除")
+    parser.add_argument("--log-level", default="INFO", help="ログレベルを設定 (例: DEBUG, INFO, WARNING, ERROR)")
 
     args = parser.parse_args()
 
+    logging.basicConfig(level=getattr(logging, args.log_level.upper(), None))
+
     bd_api = BlackDuckAPI(args.url, args.token)
 
-    if args.list_projects:
-        bd_api.list_projects()
-    if args.list_versions:
-        bd_api.list_project_versions(args.scan)
-
-    if args.scan:
-        bd_api.run_scan(args.scan, args.scan_version, args.scan_dir)
-    elif args.report:
-        bd_api.request_version_report(args.report, args.report_version)
-    elif args.delete_report:
-        bd_api.delete_report(args.delete_report)
-    elif args.delete_scan:
-        bd_api.delete_scan(args.delete_scan, args.scan_version)
-    elif args.delete_version:
-        bd_api.delete_version(args.delete_version, args.scan_version)
+    try:
+        if args.list_projects:
+            bd_api.list_projects()
+        if args.list_versions:
+            bd_api.list_project_versions(args.scan)
+        if args.scan:
+            bd_api.run_scan(args.scan, args.scan_version, args.scan_dir)
+        elif args.report:
+            bd_api.request_version_report(args.report, args.report_version)
+        elif args.delete_report:
+            bd_api.delete_report(args.delete_report)
+        elif args.delete_scan:
+            bd_api.delete_scan_by_project_version(args.delete_scan, args.scan_version)
+        elif args.delete_version:
+            bd_api.delete_version(args.delete_version, args.scan_version)
+    finally:
+        bd_api.close()
 
 
 if __name__ == "__main__":
