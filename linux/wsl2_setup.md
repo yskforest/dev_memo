@@ -6,6 +6,13 @@ dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux 
 dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
 ```
 
+```powershell
+# defaultのUbuntuがインストールされるが仕方ないかも
+wsl --install
+wsl --update
+wsl --install -d Ubuntu-22.04
+```
+
 ## WSL2をVcxSrvでGUI起動
 ### WSL側の設定、以下コマンド実行
 - rvizがXサーバーと正しく通信できるようにする
