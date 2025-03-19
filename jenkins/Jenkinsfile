@@ -1,0 +1,78 @@
+pipeline {
+    agent any
+
+    environment {
+        GITHUB_TOKEN = credentials('github-token')  // GitHubトークンを取得
+        REPO_OWNER = 'XXX'  // GitHubリポジトリのオーナー
+        REPO_NAME = 'test'  // GitHubリポジトリ名
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Get PR Context') {
+            steps {
+                script {
+                    if (env.CHANGE_ID) {
+                        env.CI_PULL_REQUEST = env.CHANGE_ID
+                        env.CI_COMMIT = env.GIT_COMMIT
+                        echo "Pull Request ID: ${env.CI_PULL_REQUEST}"
+                        echo "Commit SHA: ${env.CI_COMMIT}"
+                    } else {
+                        echo "This is not a PR build."
+                        currentBuild.result = 'ABORTED'
+                        error("Not a PR build")
+                    }
+                }
+            }
+        }
+
+        stage('Install textlint') {
+            steps {
+                sh '''
+                if ! command -v textlint &> /dev/null; then
+                    npm install -g textlint textlint-rule-preset-ja-technical-writing
+                fi
+                '''
+            }
+        }
+
+        stage('Run textlint') {
+            steps {
+                sh '''
+                textlint --format unix docs/ > textlint_report.txt || true
+                cat textlint_report.txt
+                '''
+            }
+        }
+
+        stage('Reviewdog - textlint') {
+            steps {
+                sh '''
+                export REVIEWDOG_GITHUB_API_TOKEN=$GITHUB_TOKEN
+                export CI_REPO_OWNER=$REPO_OWNER
+                export CI_REPO_NAME=$REPO_NAME
+                export CI_COMMIT=$CI_COMMIT
+                export CI_PULL_REQUEST=$CI_PULL_REQUEST
+
+                cat textlint_report.txt | reviewdog \
+                    -efm="%f:%l:%c: %m" \
+                    -name="textlint" \
+                    -reporter=github-pr-review \
+                    -filter-mode=added \
+                    -fail-on-error=false
+                '''
+            }
+        }
+    }
+
+    post {
+        always {
+            archiveArtifacts artifacts: 'textlint_report.txt', fingerprint: true
+        }
+    }
+}

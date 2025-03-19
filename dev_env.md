@@ -32,20 +32,19 @@ CARLAのビルドに必要
 - [Windows SDK and emulator archive](https://developer.microsoft.com/en-us/windows/downloads/sdk-archive/)
 - [Windows 8.1 SDK](https://go.microsoft.com/fwlink/p/?LinkId=323507)
 
-# linux SUMO install
-[add-apt-repositoryを使わないでPPAを追加する](https://www.usagi1975.com/2019152355/)
-[SUMOの公開鍵を取得](https://launchpad.net/~sumo/+archive/ubuntu/stable)
 
+##
+- [コード品質可視化DockerでSonarQube！WSL2で構築](https://tech.walkit.net/docker-sonarqube)
+- https://github.com/dotnet/dotnet-docker
+- https://github.com/mono/linux-packaging-msbuild
+- https://github.com/SonarSource/sonar-scanner-msbuild
+- [Docker イメージから SonarQube をインストールする](https://docs.sonarsource.com/sonarqube/9.9/setup-and-upgrade/install-the-server/#installing-sonarqube-from-the-docker-image)
+  - 上記のコマンドで示されているように、 バインド マウントではなくボリュームを使用していることを確認してください 。バインド マウントを使用すると、プラグインが正しく設定されなくなります。
+- [](https://community.sonarsource.com/t/environment-variables-documentation-with-missing-placeholders/34848)
+  - https://github.com/Daabramov/Sonarqube-for-1c-docker/blob/master/docker-compose.yml
+  - 
 ```bash
-# sudo add-apt-repository ppa:sumo/stable に相当
-apt-key adv --keyserver keyserver.ubuntu.com --recv 0x4B339D18DD12CA62CA0E400F87637B2A34012D7A
-sudo apt-get update
-
-# ppa:sumo/stable Ubuntu18.04
-deb https://ppa.launchpadcontent.net/sumo/stable/ubuntu bionic main 
-deb-src https://ppa.launchpadcontent.net/sumo/stable/ubuntu bionic main 
-
-
-echo 'deb https://ppa.launchpadcontent.net/sumo/stable/ubuntu bionic main' \
-         | sudo tee /etc/apt/sources.list.d/sumo_stable_ubuntu_bionic_main.list
+SONAR_WEB_JAVAOPTS=-Xmx1G -Xms128m -XX:+HeapDumpOnOutOfMemoryError
+SONAR_CE_JAVAOPTS=-Xmx2G -Xms128m -XX:+HeapDumpOnOutOfMemoryError
+SONAR_SEARCH_JAVAOPTS=-Xmx2G -Xms2G -XX:MaxDirectMemorySize=1G -XX:+HeapDumpOnOutOfMemoryError
 ```

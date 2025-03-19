@@ -111,3 +111,9 @@ sudo service docker start
 ```sh
 docker image build --network host -t kazuhira/apache2:latest .
 ```
+
+## 
+```bash
+sudo usermod -aG docker $USER
+getent group docker
+```
