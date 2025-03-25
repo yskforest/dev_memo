@@ -5,7 +5,6 @@
 
 ## must
 ```powershell
-choco install -y googlechrome
 choco install -y firefox
 choco install -y vlc.install
 choco install -y winrar
@@ -21,22 +20,28 @@ choco install -y meshlab
 choco install -y bitcomet
 choco install -y visualstudio2022community
 choco install -y steam
+choco install -y irfanview
+choco install -y irfanviewplugins
+choco install -y nodejs-lts
+choco install -y rufus
+```
+
+## chcksum error
+- 2025/3確認
+```powershell
 choco install -y epicgameslauncher
-choco install -y vmware-workstation-player
+choco install -y googlechrome
 ```
 
 ## optional 2
 ```powershell
+choco install -y vmware-workstation-player
 choco install -y adobereader
 choco install -y virtualbox
 choco install -y crystaldiskinfo
-choco install -y irfanview
-choco install -y irfanviewplugins
 choco install -y cmake.install
 choco install -y make
-choco install -y nodejs-lts
 choco install -y blender
-choco install -y rufus
 ```
 
 ## 導入しない
