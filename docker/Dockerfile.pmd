@@ -1,0 +1,26 @@
+FROM ubuntu:24.04
+
+RUN apt-get update && apt-get install -y \
+    git curl wget unzip \
+    python3 python3-pip \
+    openjdk-21-jdk xalan \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# stable release
+ARG PMD_VER=7.11.0
+RUN cd /usr/local \
+    && wget -O pmd.zip https://github.com/pmd/pmd/releases/download/pmd_releases%2F${PMD_VER}/pmd-dist-${PMD_VER}-bin.zip \
+    && unzip pmd.zip \
+    && rm -f pmd.zip
+ENV PATH=/usr/local/pmd-bin-${PMD_VER}/bin:${PATH}
+
+USER ubuntu
+WORKDIR /home/ubuntu
+RUN python3 -m pip install --upgrade pip --break-system-packages \
+    && python3 -m pip install --no-cache-dir lxml --break-system-packages
+
+# https://pmd.github.io/pmd/pmd_userdocs_cpd_report_formats.html#xslt
+RUN wget https://raw.githubusercontent.com/pmd/pmd/master/pmd-core/etc/xslt/cpdhtml.xslt \
+    && wget https://raw.githubusercontent.com/pmd/pmd/master/pmd-core/etc/xslt/cpdhtml-v2.xslt
+
+CMD ["/bin/bash"]
