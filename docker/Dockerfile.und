@@ -1,0 +1,52 @@
+FROM ubuntu:20.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV UN_VERSION=6.0.1044
+ENV UN_FILENAME=Understand-${UN_VERSION}-Linux-64bit.tar.gz
+ENV UN_DIR=Understand
+
+# 必要パッケージのインストール（libssl1.1含む）
+RUN apt-get update && apt-get install -y \
+    wget \
+    tar \
+    libx11-6 \
+    libxext6 \
+    libxrender1 \
+    libxtst6 \
+    libxi6 \
+    libgl1-mesa-glx \
+    libsm6 \
+    libxrandr2 \
+    libnss3 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxcb1 \
+    libxinerama1 \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# 作業ディレクトリ
+WORKDIR /opt
+
+# ローカルに配置したアーカイブをコピー
+COPY ${UN_FILENAME} ./
+
+# 解凍とシンボリックリンク
+RUN tar -xzf ${UN_FILENAME} && \
+    rm ${UN_FILENAME} && \
+    ln -s /opt/${UN_DIR} /opt/understand
+
+# PATHに追加
+ENV PATH="/opt/understand/bin/linux64:${PATH}"
+
+# バージョン表示でテスト起動
+CMD ["und", "--version"]
+
+# docker run --rm -v $(pwd)/license.dat:/root/.understand/license.dat understand:v6.0-ubuntu20.04
+# SERVER my-license-server 001122334455 27000
+# DAEMON understandd /opt/understand/understandd
+# FEATURE Understand SciTools 6.0 01-jan-2026 10 \
+#   SIGN="0123456789ABCDEF0123456789ABCDEF"
