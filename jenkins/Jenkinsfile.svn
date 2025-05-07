@@ -1,0 +1,71 @@
+pipeline {
+    agent any
+    environment {
+        HOME = "${env.WORKSPACE}/tmp_home"  // git-svnが使用するホームをJenkinsワークスペース内に仮定義
+        GIT_SSL_NO_VERIFY = '1'             // HTTPS環境で証明書警告を抑制（必要に応じて）
+        SVN_USERNAME = 'your_svn_user'
+        SVN_PASSWORD = 'your_svn_pass'
+    }
+    triggers {
+        cron('H * * * *')  // 毎時実行（1時間ごと）
+    }
+    stages {
+        stage('Prepare temporary HOME and SVN credentials') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'svn-credentials',
+                        usernameVariable: 'SVN_USER',
+                        passwordVariable: 'SVN_PASS'
+                    )
+                ]) {
+                    sh '''
+                        mkdir -p "$HOME/.subversion"
+                        cat > "$HOME/.subversion/servers" <<EOF
+[global]
+store-plaintext-passwords = yes
+store-passwords = yes
+username = $SVN_USER
+password = $SVN_PASS
+EOF
+                    '''
+                }
+            }
+        }
+        stage('Checkout or Update Git-SVN') {
+            steps {
+                dir('project-git') {
+                    sh '''
+                        git svn fetch
+                        git svn rebase
+                    '''
+                }
+            }
+        }
+        stage('Push to GitLab') {
+            steps {
+                dir('project-git') {
+                    withCredentials([
+                        usernamePassword(
+                            credentialsId: 'gitlab-pat',
+                            usernameVariable: 'GIT_USER',
+                            passwordVariable: 'GIT_TOKEN'
+                        )
+                    ]) {
+                        sh '''
+                            git remote set-url gitlab https://$GIT_USER:$GIT_TOKEN@gitlab.com/your-group/your-project.git
+                            git push -u gitlab master
+                            git remote set-url gitlab https://gitlab.com/your-group/your-project.git
+                        '''
+                    }
+                }
+            }
+        }
+    }
+    post {
+        always {
+            // 一時HOMEの後始末
+            sh 'rm -rf "$HOME"'
+        }
+    }
+}
