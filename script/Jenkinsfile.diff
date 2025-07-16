@@ -1,0 +1,67 @@
+lepipeline {
+    agent any
+
+    environment {
+        TARGET_BRANCH = 'main'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // クローンと対象ブランチのチェックアウト
+                git branch: "${TARGET_BRANCH}", url: 'https://your.gitlab.repo/project.git'
+            }
+        }
+
+        stage('Extract Changed Files') {
+            steps {
+                script {
+                    // コミットペアのリスト（必要に応じて外部から渡すことも可）
+                    def commitPairs = [
+                        ['abc123', 'def456'],
+                        ['789abc', '012def']
+                    ]
+
+                    // 一時ファイル作成
+                    sh 'rm -f all_diff_files.txt merged_diff_files.txt existing_diff_files.txt'
+                    sh 'touch all_diff_files.txt'
+
+                    // 各ペアの差分ファイルを収集
+                    for (pair in commitPairs) {
+                        def c1 = pair[0]
+                        def c2 = pair[1]
+                        echo "🔍 Getting diff between ${c1} and ${c2}"
+                        sh "git diff --name-only ${c1} ${c2} >> all_diff_files.txt"
+                    }
+
+                    // 重複排除
+                    sh 'sort -u all_diff_files.txt > merged_diff_files.txt'
+
+                    // HEADに存在するファイルのみ抽出
+                    sh '''
+                        git ls-tree -r --name-only HEAD > current_files.txt
+                        grep -Fxf merged_diff_files.txt current_files.txt > existing_diff_files.txt
+                    '''
+
+                    // 対象ファイルをコピー（オプション）
+                    sh '''
+                        mkdir -p diff_files
+                        while IFS= read -r file; do
+                          mkdir -p "diff_files/$(dirname "$file")"
+                          cp "$file" "diff_files/$file"
+                        done < existing_diff_files.txt
+                    '''
+                }
+            }
+        }
+
+        stage('Analyze') {
+            steps {
+                echo '🧪 Run analysis tools on diff_files/*'
+                // ここで静的解析やビルド対象にする
+                // 例:
+                // sh 'pmd -d diff_files -R ruleset.xml -f text'
+            }
+        }
+    }
+}
