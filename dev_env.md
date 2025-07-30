@@ -48,3 +48,14 @@ SONAR_WEB_JAVAOPTS=-Xmx1G -Xms128m -XX:+HeapDumpOnOutOfMemoryError
 SONAR_CE_JAVAOPTS=-Xmx2G -Xms128m -XX:+HeapDumpOnOutOfMemoryError
 SONAR_SEARCH_JAVAOPTS=-Xmx2G -Xms2G -XX:MaxDirectMemorySize=1G -XX:+HeapDumpOnOutOfMemoryError
 ```
+
+##
+- powershellでVM作成
+- ローカルアカウント作成でインストール
+  - [ローカルアカウントで「Windows 11」をセットアップする手段がまた一つふさがれてしまう](https://forest.watch.impress.co.jp/docs/serial/yajiuma/2002453.html)
+- 仮想スイッチ有効化
+- Windows起動後にデバイスの暗号化オフ
+- Windows Update
+- シャットダウン
+- TPMをオフ
+  - エクスポート対応
