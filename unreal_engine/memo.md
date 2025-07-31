@@ -1,10 +1,7 @@
 # unreal engine memo
 
 ## general
-- [gitignore template](https://github.com/github/gitignore/blob/main/UnrealEngine.gitignore)
-- [コーディング規約](https://docs.unrealengine.com/5.0/ja/epic-cplusplus-coding-standard-for-unreal-engine/)
-- [clang-format template](https://github.com/TensorWorks/UE-Clang-Format/blob/main/.clang-format)
-- [ゲーム開発備忘録 UE5](https://namiton.hatenablog.jp/archive/category/UE5)
+
 
 ## PanoramicExporter UE5
 - 出力先を変更する
